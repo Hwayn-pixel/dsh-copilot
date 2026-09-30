@@ -28,19 +28,29 @@ DSH 允许一个段**按名字遮蔽**同名段（这正是"预设可以盖掉�
 ## 安装
 
 ```powershell
-# 1) 从插件目录挂进 web profile
-dsh plugin --profile web add -w .
+# 已发布到 npm 时
+dsh plugin --profile web add dsh-copilot
 
-# 2) 重启 web 宿主
+# 本地开发（link 方式，改完 build 即可）
+dsh plugin --profile web add -w .    # 在插件目录里执行
+
+# 重启 web 宿主
 dsh --profile web --no-open
 
-# 3) 浏览器硬刷新（Ctrl+F5）
+# 浏览器硬刷新（Ctrl+F5）
 ```
 
 打开 **设置 → 副驾驶**。
 
-> 本地开发时（link 方式安装），插件目录的 `node_modules` 里需要有
-> `@deepseek-ai/schemastery`；正式安装由包管理器的依赖声明解决。
+> 本地 link 安装时，插件目录的 `node_modules` 里需要有 `@deepseek-ai/schemastery`（DSH 自带的
+> 那份即可）；从 npm 正式安装时由依赖声明自动解决。
+
+### 怎么退回去
+
+- **只要临时静默**：设置页里关掉「启用」——本插件不再往 prompt 里写任何字，**别的都不动**。
+- **完全卸载**：把 `node_modules` 里的链接删掉、从 profile 的 `dsh.profile.bundles` 里去掉
+  `dsh-copilot`，然后重启宿主。已写入过的家规留在 profile 的设置文档里，可以手动清。
+- 本插件**从不修改别的插件贡献的段**，所以“退回去”不需要任何补丁。
 
 ## 接口（主机半）
 

@@ -1,7 +1,7 @@
 {
   "name": "dsh-copilot",
-  "version": "0.0.1",
-  "description": "A co-pilot for your DSH agent's instructions - read the system prompt as sections, edit or override what you need, spot the rules that repeat or contradict each other, and roll everything back. The steering wheel stays in your hands.",
+  "version": "0.1.0",
+  "description": "A co-pilot for your DSH agent's instructions: read the system prompt as sections, write your own house rules into it, spot what repeats or contradicts, keep a logbook of every change - and roll it all back.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -27,7 +27,8 @@
     "system-prompt",
     "prompt",
     "instructions",
-    "copilot"
+    "copilot",
+    "web-ui"
   ],
   "license": "MIT",
   "author": "Hwayn",
@@ -35,15 +36,40 @@
     "type": "git",
     "url": "git+https://github.com/Hwayn-pixel/dsh-copilot.git"
   },
+  "bugs": {
+    "url": "https://github.com/Hwayn-pixel/dsh-copilot/issues"
+  },
+  "homepage": "https://github.com/Hwayn-pixel/dsh-copilot#readme",
   "publishConfig": {
     "access": "public"
   },
   "engines": {
     "node": ">=20"
   },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.6.3",
+    "@types/node": "22",
+    "@types/react": "~18.3.1",
+    "react": "18.2.0"
+  },
+  "files": [
+    "lib",
+    "src",
+    "cordis.patch.yml",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "node build.mjs"
   }
 }
