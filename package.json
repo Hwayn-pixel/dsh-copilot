@@ -1,0 +1,49 @@
+{
+  "name": "dsh-copilot",
+  "version": "0.0.1",
+  "description": "A co-pilot for your DSH agent's instructions - read the system prompt as sections, edit or override what you need, spot the rules that repeat or contradict each other, and roll everything back. The steering wheel stays in your hands.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [],
+      "platform": "web"
+    }
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "cordis",
+    "cordis-plugin",
+    "plugin",
+    "system-prompt",
+    "prompt",
+    "instructions",
+    "copilot"
+  ],
+  "license": "MIT",
+  "author": "Hwayn",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hwayn-pixel/dsh-copilot.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit"
+  }
+}

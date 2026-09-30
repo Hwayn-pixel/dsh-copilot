@@ -1,0 +1,10 @@
+﻿node_modules/
+*.log
+.readme-preview.html
+
+# npm auth (never commit)
+.npmrc
+
+# editor backups
+*.bak
+*.bak_*

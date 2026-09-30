@@ -1,0 +1,5 @@
+﻿# dsh-copilot — bundle patch layer (declared by dsh.bundle.patch).
+# Registers this plugin's row into the web profile's plugin roster.
+- insert:
+    - id: ui-copilot
+      name: 'dsh-copilot'
