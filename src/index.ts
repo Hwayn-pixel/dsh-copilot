@@ -20,7 +20,7 @@ import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 
-export const name = "dsh-copilot";
+export const name = "dsh-copilot-plugin";
 export const SETTINGS_NAMESPACE = "ui-copilot";
 
 const ROUTE_PREFIX = "/dsh-copilot";

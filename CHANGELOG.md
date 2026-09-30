@@ -1,4 +1,19 @@
-﻿# Changelog
+# Changelog
+
+## 0.2.1
+
+### Fixed
+- **The settings panel could silently fail to appear.** A plugin's *client* module id has to match
+  the plugin's name exactly; after the package was renamed the id was left behind, so the module was
+  in the roster but never attached — no error, no panel. Both halves now use `dsh-copilot-plugin`.
+- The bundled restart helper wrote a UTF-8 **BOM** into the saved address file, which made the
+  URL unusable to any reader that does not strip it. It now writes plain UTF-8.
+
+### 修复
+- **设置面板可能悄无声息地不出现。** 插件的*客户端*模块 id 必须和插件名完全一致；改名之后那个
+  id 被落下了，于是模块在加载清单里、却始终没挂上去——不报错、也不显示。现在两半都用
+  `dsh-copilot-plugin`。
+- 附带的重启脚本会往地址文件里写 UTF-8 **BOM**，导致不剥离 BOM 的读取方拿到废 URL。现在写纯 UTF-8。
 
 > 每个版本号下方先给中文摘要，随后是详细英文条目。
 > Each version starts with a Chinese summary, followed by the detailed English entries.

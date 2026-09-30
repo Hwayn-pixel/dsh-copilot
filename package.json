@@ -1,6 +1,6 @@
 {
   "name": "dsh-copilot-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A co-pilot for your DSH agent's instructions: read the system prompt as sections, write your own house rules into it, catch the rules that contradict each other, keep a logbook of every change - and roll it all back.",
   "type": "module",
   "main": "lib/index.js",

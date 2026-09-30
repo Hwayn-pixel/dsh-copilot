@@ -27,7 +27,7 @@ function transpile(file, moduleKind) {
   return result.outputText;
 }
 
-const CLIENT_ID = "dsh-copilot";
+const CLIENT_ID = "dsh-copilot-plugin";
 const clientBanner = [
   `window.__ModuleLoader__.load({`,
   `\tid: ${JSON.stringify(CLIENT_ID)},`,
