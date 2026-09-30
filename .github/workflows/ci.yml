@@ -15,4 +15,5 @@ jobs:
           node-version: 20
       - run: npm ci || npm install
       - run: npm run typecheck
+      - run: npm test
       - run: npm run build

@@ -119,6 +119,64 @@ function clock(ms: number): string {
 const kb = (n: number): string => `${(n / 1024).toFixed(1)} KB`;
 
 /** Cheap, honest lint. No model, no guessing, no scores. */
+
+// 冲突检测的词汇表。刻意不用裸的“要”（它藏在“不要”里），免得把否定词当成肯定词。
+const NEG_WORDS = ["不要", "别", "禁止", "不准", "切勿", "避免", "无需", "不必", "never", "don't", "do not", "avoid", "must not"];
+const POS_WORDS = ["必须", "一定", "务必", "总是", "始终", "一律", "always", "must", "ensure", "required"];
+const STOP = new Set(["的", "了", "我", "你", "他", "她", "它", "是", "在", "和", "与", "就", "都", "也", "还", "把", "被", "让", "给", "这", "那", "很", "the", "a", "an", "to", "of", "and", "or", "is", "are", "be", "it", "for", "on", "in"]);
+
+/** 话题词：拉丁词 + 中文二字组，去掉停用词。粗糙但够用。 */
+function topicTokens(text: string): Set<string> {
+  const cleaned = String(text || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+  const out = new Set<string>();
+  for (const word of cleaned.split(/\s+/).filter(Boolean)) {
+    if (/^[\x00-\x7f]+$/.test(word)) {
+      if (word.length > 2 && !STOP.has(word)) out.add(word);
+    } else {
+      for (let i = 0; i + 1 < word.length; i++) {
+        const bigram = word.slice(i, i + 2);
+        if (!STOP.has(bigram)) out.add(bigram);
+      }
+    }
+  }
+  return out;
+}
+
+function polarity(text: string): "neg" | "pos" | "both" | "none" {
+  const t = String(text || "").toLowerCase();
+  const neg = NEG_WORDS.some((word) => t.includes(word));
+  const pos = POS_WORDS.some((word) => t.includes(word));
+  return neg && pos ? "both" : neg ? "neg" : pos ? "pos" : "none";
+}
+
+/** 两条家规之间“可能在打架”的判断——只看事实，只给线索，最多报三条。 */
+function ruleDuel(rules: Rule[]): { color: string; text: string }[] {
+  const out: { color: string; text: string }[] = [];
+  const live = rules
+    .map((rule, index) => ({ index, rule, toks: topicTokens(rule.text ?? ""), pol: polarity(rule.text ?? "") }))
+    .filter((item) => item.rule.enabled !== false && String(item.rule.text ?? "").trim());
+  const name = (item: { index: number; rule: Rule }) => `第${item.index + 1}条${item.rule.title ? `「${item.rule.title}」` : ""}`;
+  for (let a = 0; a < live.length; a++) {
+    for (let b = a + 1; b < live.length && out.length < 3; b++) {
+      const A = live[a];
+      const B = live[b];
+      const denom = Math.min(A.toks.size, B.toks.size);
+      if (!denom) continue;
+      let shared = 0;
+      for (const tok of A.toks) if (B.toks.has(tok)) shared += 1;
+      const overlap = shared / denom;
+      const opposite = A.pol !== "none" && B.pol !== "none" && A.pol !== B.pol;
+      // 反过来会错：措辞几乎相同的“always X”和“never X”，重合度先撞上“重复”阀值，
+      // 于是把一对打架说成了同一句话。先判矛盾，再判重复。
+      if (overlap >= 0.34 && opposite) {
+        out.push({ color: "#d0604c", text: `${name(A)} 和 ${name(B)} 可能在打架：都在说同一件事，一个有「要」、一个有「不要」。自己看一眼。` });
+      } else if (overlap >= 0.75) {
+        out.push({ color: "#e2a13c", text: `${name(A)} 和 ${name(B)} 基本是同一句话——说一遍就够了。` });
+      }
+    }
+  }
+  return out;
+}
 function lint(sections: { name: string; bytes: number; text: string }[], rules: Rule[]): { color: string; text: string }[] {
   const out: { color: string; text: string }[] = [];
   const owners = new Map<string, Set<string>>();
@@ -138,6 +196,7 @@ function lint(sections: { name: string; bytes: number; text: string }[], rules: 
   if (big.length) out.push({ color: "#e2a13c", text: `有 ${big.length} 段偏长（>6KB）：${big.slice(0, 3).map((s) => s.name).join("、")}。长段会挤掉更重要的上下文。` });
   const blank = (rules ?? []).filter((r) => r && r.enabled !== false && !String(r.text ?? "").trim());
   if (blank.length) out.push({ color: "#e2a13c", text: `有 ${blank.length} 条规则开着但没写正文，它们不会进 prompt。` });
+  out.push(...ruleDuel(rules ?? []));
   const mine = (rules ?? []).filter((r) => r && r.enabled !== false && String(r.text ?? "").trim()).length;
   out.push({
     color: "#4f9d6a",
@@ -371,3 +430,10 @@ export function apply(ctx: any): void {
     ),
   );
 }
+
+/**
+ * Exposed for the test suite only. The lint is pure, so it can be exercised against the built
+ * bundle without a browser, a settings scope or a running host — which is exactly what
+ * `test/duel.test.mjs` does.
+ */
+export const __test = { ruleDuel, topicTokens, polarity, lint };

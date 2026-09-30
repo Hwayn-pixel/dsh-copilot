@@ -1,7 +1,7 @@
 {
-  "name": "@hwayn/dsh-copilot",
-  "version": "0.1.0",
-  "description": "A co-pilot for your DSH agent's instructions: read the system prompt as sections, write your own house rules into it, spot what repeats or contradicts, keep a logbook of every change - and roll it all back.",
+  "name": "dsh-copilot-plugin",
+  "version": "0.2.0",
+  "description": "A co-pilot for your DSH agent's instructions: read the system prompt as sections, write your own house rules into it, catch the rules that contradict each other, keep a logbook of every change - and roll it all back.",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -64,12 +64,14 @@
     "cordis.patch.yml",
     "README.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "test"
   ],
   "scripts": {
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "node build.mjs"
+    "prepublishOnly": "node build.mjs",
+    "test": "node test/duel.test.mjs"
   }
 }

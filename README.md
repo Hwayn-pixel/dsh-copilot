@@ -14,7 +14,7 @@
 |---|---|
 | **看得见** | 把当前 system prompt 按**段**摊开：每段叫什么、来自谁、多少字节、原文长什么样。走的是真实的 `ctx.systemPrompt.assemble()`，不是猜的。 |
 | **改得动** | 「我的家规」：写一段话，选它落在 prompt 的哪个位置（**靠前 / 中间 / 靠后**）。改完**立刻生效，不用重启**——因为每段的正文是一个 provider，在每次组装时才读取。 |
-| **解得开** | 「体检」：同一条话出现在两段以上、某段特别长、规则开着却没写正文……**只看事实**，不替你做决定。 |
+| **解得开** | 「体检」：同一条话出现在两段以上、**两条互相矛盾**（一个有「要」、一个有「不要」）、某段特别长、规则开着却没写正文……**只看事实**，不替你做决定。 |
 | **退得回** | 所有贡献都来自本插件自己的段名（`copilot:pre` / `copilot:mid` / `copilot:post`）。**关掉开关或卸载插件，一切回到原样**——它从不改写别人的段。 |
 
 ### 为什么段名不叫 `deployment:persona-prefix`
@@ -28,8 +28,8 @@ DSH 允许一个段**按名字遮蔽**同名段（这正是"预设可以盖掉�
 ## 安装
 
 ```powershell
-# 已发布到 npm 时（npm 上的 dsh-copilot 已被他人占位，我们用自己的命名空间）
-dsh plugin --profile web add @hwayn/dsh-copilot
+# npm 上的包名是 dsh-copilot-plugin（原因见下）
+dsh plugin --profile web add dsh-copilot-plugin
 
 # 本地开发（link 方式，改完 build 即可）
 dsh plugin --profile web add -w .    # 在插件目录里执行
@@ -44,6 +44,13 @@ dsh --profile web --no-open
 
 > 本地 link 安装时，插件目录的 `node_modules` 里需要有 `@deepseek-ai/schemastery`（DSH 自带的
 > 那份即可）；从 npm 正式安装时由依赖声明自动解决。
+
+> **⚠️ 给 DSH 插件作者的一条血泪经验（已验证）：DSH 的插件 id 不支持 npm 作用域名。**
+> 包名叫 `@hwayn/dsh-copilot` 时，**宿主照常加载**（路由都通），但**客户端半会被悄悄丢出加载清单**——
+> 设置页直接消失，前端一点报错都没有。名字必须**三处一字不差、且不带作用域**：
+> `package.json` 的 `name`、`cordis.patch.yml` 里的 `name`、profile 的 `dependencies` 键 + `dsh.profile.bundles`。
+> 所以这个仓库叫 `dsh-copilot`，npm 上叫 `dsh-copilot-plugin`。
+
 
 ### 怎么退回去
 
