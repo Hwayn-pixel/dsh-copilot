@@ -1,5 +1,5 @@
 {
-  "name": "dsh-copilot",
+  "name": "@hwayn/dsh-copilot",
   "version": "0.1.0",
   "description": "A co-pilot for your DSH agent's instructions: read the system prompt as sections, write your own house rules into it, spot what repeats or contradicts, keep a logbook of every change - and roll it all back.",
   "type": "module",

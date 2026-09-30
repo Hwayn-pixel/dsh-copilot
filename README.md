@@ -28,8 +28,8 @@ DSH 允许一个段**按名字遮蔽**同名段（这正是"预设可以盖掉�
 ## 安装
 
 ```powershell
-# 已发布到 npm 时
-dsh plugin --profile web add dsh-copilot
+# 已发布到 npm 时（npm 上的 dsh-copilot 已被他人占位，我们用自己的命名空间）
+dsh plugin --profile web add @hwayn/dsh-copilot
 
 # 本地开发（link 方式，改完 build 即可）
 dsh plugin --profile web add -w .    # 在插件目录里执行
