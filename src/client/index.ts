@@ -19,7 +19,12 @@ const NS = "ui-copilot";
 const ROUTE = "/dsh-copilot";
 const STYLE_ID = "dsh-copilot-style";
 
-export const inject = ["slots", "settingsScope"];
+// `remote` is the typert RPC namespace that exists in both 0.1.x and the 0.2 desktop app, and
+// `ctx.remote.settings` is its settings face. (The old `settingsScope` service was dropped in 0.2 -
+// declaring it left the plugin "pending (waiting for service: settingsScope)" forever there. And
+// accessing `ctx.remote` without declaring `remote` in `inject` throws
+// `cannot get property "remote" without inject` - which is how we learned the exact name.)
+export const inject = ["slots", "remote"];
 
 type Band = "pre" | "mid" | "post";
 interface Rule {
@@ -440,9 +445,80 @@ function CopilotPanel(props: { scope: Scope<Value> }): React.ReactElement {
   );
 }
 
+/**
+ * Settings access, version-agnostic.
+ *
+ * DSH 0.1.x hands plugins a `settingsScope` service; DSH 0.2 (the desktop app) dropped it in favour
+ * of the typert RPC namespace `remote.settings`. Declaring `settingsScope` in `inject` therefore
+ * left this plugin "pending\: waiting for service: settingsScope" forever on 0.2 - no error, no
+ * panel. So we inject only what has always existed, and pick the API at runtime.
+ */
+interface RemoteSettings {
+  describe(): Promise<unknown>;
+  update(namespace: string, patch: Record<string, unknown>, expectedRevision?: unknown): Promise<unknown>;
+}
+
+/** Pull our namespace's value out of whatever shape `describe()` returns. */
+function pickNamespace(described: any, namespace: string): any {
+  if (!described || typeof described !== "object") return undefined;
+  const candidates = [
+    described.namespaces?.[namespace],
+    described.settings?.[namespace],
+    described[namespace],
+  ];
+  for (const candidate of candidates) {
+    if (candidate === undefined) continue;
+    if (candidate && typeof candidate === "object" && "value" in candidate) return candidate.value;
+    return candidate;
+  }
+  return undefined;
+}
+
+/** A `Scope` over the 0.2 RPC namespace: cache + notify, refresh after every write. */
+function remoteScope(remote: RemoteSettings, namespace: string): Scope<any> {
+  let snapshot: { value?: any; status?: string } = { value: undefined, status: "loading" };
+  const listeners = new Set<() => void>();
+  const emit = () => listeners.forEach((fn) => fn());
+  const refresh = async () => {
+    try {
+      const described = await remote.describe();
+      snapshot = { value: pickNamespace(described, namespace), status: "ready" };
+    } catch (error) {
+      snapshot = { value: snapshot.value, status: "error" };
+    }
+    emit();
+  };
+  void refresh();
+  return {
+    getSnapshot: () => snapshot,
+    set: async (key: string, value: unknown) => {
+      snapshot = { value: { ...(snapshot.value ?? {}), [key]: value }, status: snapshot.status };
+      emit();
+      await remote.update(namespace, { [key]: value });
+      await refresh();
+    },
+    subscribe: (fn: () => void) => {
+      listeners.add(fn);
+      return () => listeners.delete(fn);
+    },
+  };
+}
+
+/** A scope that renders the panel but cannot persist (last resort - says so in the UI). */
+function inertScope(status: string): Scope<any> {
+  const snapshot = { value: undefined as any, status };
+  return { getSnapshot: () => snapshot, set: async () => undefined, subscribe: () => () => undefined };
+}
+
+function resolveSettingsScope(ctx: any, namespace: string): Scope<any> {
+  const remote = ctx?.remote?.settings;
+  if (remote && typeof remote.describe === "function") return remoteScope(remote, namespace);
+  return inertScope("no-settings-service");
+}
+
 export function apply(ctx: any): void {
   ensureStyle();
-  const scope = ctx.settingsScope.bind({ namespace: NS }) as Scope<Value>;
+  const scope = resolveSettingsScope(ctx, NS);
   const Section = () => h(CopilotPanel, { scope });
   ctx.slots.inject("settings.section", () =>
     ctx.slots.register(

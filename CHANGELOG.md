@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.3
+
+### Fixed
+- **The panel never appeared in the DSH desktop app.** 0.2 dropped the client service
+  `settingsScope`; a plugin that declares it in `inject` waits forever ("pending (waiting for
+  service: settingsScope)") and is silently never applied. The settings face is now taken from the
+  typert RPC namespace (`inject: ["slots", "remote"]` + `ctx.remote.settings`), which exists in both
+  0.1.x and 0.2 — so the panel works in the web UI **and** in the desktop app.
+  (The error for guessing wrong is refreshingly explicit: `cannot get property "remote" without
+  inject`.)
+
+### 修复
+- **桌面版里面板一直不出现。** 0.2 去掉了客户端服务 `settingsScope`；插件只要在 `inject` 里声明它，
+  就会**永远 pending**（"waiting for service: settingsScope"），**不报错、也永远不生效**。现在设置面统一
+  从 typert RPC 命名空间取（`inject: ["slots","remote"]` + `ctx.remote.settings`）——0.1.x 和 0.2 都有，
+  所以**网页版和桌面版都能用**。（猜错时的报错倒是很直白：`cannot get property "remote" without inject`。）
+
 ## 0.2.2
 
 ### Changed
