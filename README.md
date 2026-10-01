@@ -1,16 +1,16 @@
-# dsh-copilot
+# dsh-prompt-desk
 
-[![npm](https://img.shields.io/npm/v/dsh-copilot-plugin?color=4c8bf5)](https://www.npmjs.com/package/dsh-copilot-plugin)
-[![license](https://img.shields.io/npm/l/dsh-copilot-plugin?color=black)](LICENSE)
-[![ci](https://github.com/Hwayn-pixel/dsh-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/Hwayn-pixel/dsh-copilot/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/dsh-prompt-desk?color=4c8bf5)](https://www.npmjs.com/package/dsh-prompt-desk)
+[![license](https://img.shields.io/npm/l/dsh-prompt-desk?color=black)](LICENSE)
+[![ci](https://github.com/Hwayn-pixel/dsh-prompt-desk/actions/workflows/ci.yml/badge.svg)](https://github.com/Hwayn-pixel/dsh-prompt-desk/actions/workflows/ci.yml)
 [![DSH](https://img.shields.io/badge/DSH-0.1.5--rc.1-6b46c1)](#兼容性)
 
-**npm:** [`dsh-copilot-plugin`](https://www.npmjs.com/package/dsh-copilot-plugin) · **one-line install:** `dsh plugin --profile web add dsh-copilot-plugin`
+**npm:** [`dsh-prompt-desk`](https://www.npmjs.com/package/dsh-prompt-desk) · **one-line install:** `dsh plugin --profile web add dsh-prompt-desk`
 
-> 一个"副驾驶"，不是"自动驾驶"。
+> 一个"提示词工作台"，不是"自动驾驶"。
 > A co-pilot, not an autopilot.
 
-`dsh-copilot` 给 DSH 的 **system prompt** 配了一位副驾驶：它让你**看清**这份说明书由哪些段组成、
+`dsh-prompt-desk` 给 DSH 的 **system prompt** 配了一位副驾驶：它让你**看清**这份说明书由哪些段组成、
 **写下**你自己的家规、并**点名**重复与臃肿。它不替你改，也不打分——**方向盘始终在你手里**。
 
 ---
@@ -26,7 +26,7 @@
 
 ### 为什么段名不叫 `deployment:persona-prefix`
 
-DSH 允许一个段**按名字遮蔽**同名段（这正是"预设可以盖掉部署 persona"的机制）。`dsh-copilot`
+DSH 允许一个段**按名字遮蔽**同名段（这正是"预设可以盖掉部署 persona"的机制）。`dsh-prompt-desk`
 **故意不使用**这种遮蔽：副驾驶是加一层**你的声音**，不是悄悄替换机长的声音。想覆盖 persona，
 请用 DSH 自己的预设机制——那才是它的正门。
 
@@ -35,8 +35,8 @@ DSH 允许一个段**按名字遮蔽**同名段（这正是"预设可以盖掉�
 ## 安装
 
 ```powershell
-# npm 上的包名是 dsh-copilot-plugin（原因见下）
-dsh plugin --profile web add dsh-copilot-plugin
+# npm 上的包名是 dsh-prompt-desk（原因见下）
+dsh plugin --profile web add dsh-prompt-desk
 
 # 本地开发（link 方式，改完 build 即可）
 dsh plugin --profile web add -w .    # 在插件目录里执行
@@ -53,25 +53,25 @@ dsh --profile web --no-open
 > 那份即可）；从 npm 正式安装时由依赖声明自动解决。
 
 > **⚠️ 给 DSH 插件作者的一条血泪经验（已验证）：DSH 的插件 id 不支持 npm 作用域名。**
-> 包名叫 `@hwayn/dsh-copilot` 时，**宿主照常加载**（路由都通），但**客户端半会被悄悄丢出加载清单**——
+> 包名叫 `@hwayn/dsh-prompt-desk` 时，**宿主照常加载**（路由都通），但**客户端半会被悄悄丢出加载清单**——
 > 设置页直接消失，前端一点报错都没有。名字必须**三处一字不差、且不带作用域**：
 > `package.json` 的 `name`、`cordis.patch.yml` 里的 `name`、profile 的 `dependencies` 键 + `dsh.profile.bundles`。
-> 所以这个仓库叫 `dsh-copilot`，npm 上叫 `dsh-copilot-plugin`。
+> 所以这个仓库叫 `dsh-prompt-desk`，npm 上叫 `dsh-prompt-desk`。
 
 
 ### 怎么退回去
 
 - **只要临时静默**：设置页里关掉「启用」——本插件不再往 prompt 里写任何字，**别的都不动**。
 - **完全卸载**：把 `node_modules` 里的链接删掉、从 profile 的 `dsh.profile.bundles` 里去掉
-  `dsh-copilot`，然后重启宿主。已写入过的家规留在 profile 的设置文档里，可以手动清。
+  `dsh-prompt-desk`，然后重启宿主。已写入过的家规留在 profile 的设置文档里，可以手动清。
 - 本插件**从不修改别的插件贡献的段**，所以“退回去”不需要任何补丁。
 
 ## 接口（主机半）
 
-- `GET /dsh-copilot/prompt` → `{ ok, enabled, sections:[{name,bytes,text}], rendered, bytes, tools, contexts, ours, bands }`
-  返回**当前真实组装出的**提示词。`:3080/dsh-copilot/prompt` 可以直接 curl，方便排查。
+- `GET /dsh-prompt-desk/prompt` → `{ ok, enabled, sections:[{name,bytes,text}], rendered, bytes, tools, contexts, ours, bands }`
+  返回**当前真实组装出的**提示词。`:3080/dsh-prompt-desk/prompt` 可以直接 curl，方便排查。
 
-设置命名空间：`ui-copilot`。
+设置命名空间：`ui-prompt-desk`。
 
 | 字段 | 默认 | 含义 |
 |---|---|---|

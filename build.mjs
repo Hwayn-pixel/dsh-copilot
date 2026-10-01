@@ -1,5 +1,5 @@
 /**
- * dsh-copilot build script.
+ * dsh-prompt-desk build script.
  *
  *   src/index.ts        -> lib/index.js   (ESM — Host half)
  *   src/client/index.ts -> lib/client.js  (CommonJS wrapped for the client-module loader)
@@ -27,7 +27,7 @@ function transpile(file, moduleKind) {
   return result.outputText;
 }
 
-const CLIENT_ID = "dsh-copilot-plugin";
+const CLIENT_ID = "dsh-prompt-desk";
 const clientBanner = [
   `window.__ModuleLoader__.load({`,
   `\tid: ${JSON.stringify(CLIENT_ID)},`,
@@ -43,13 +43,13 @@ function build() {
   writeFileSync(join(libDir, "index.js"), transpile("index.ts", ts.ModuleKind.ESNext));
   const client = transpile(join("client", "index.ts"), ts.ModuleKind.CommonJS);
   writeFileSync(join(libDir, "client.js"), `${clientBanner}\n${client}\n${clientFooter}`);
-  console.log("dsh-copilot: built lib/index.js + lib/client.js");
+  console.log("dsh-prompt-desk: built lib/index.js + lib/client.js");
 }
 
 build();
 
 if (process.argv.includes("--watch")) {
-  console.log("dsh-copilot: watching src/ for changes…");
+  console.log("dsh-prompt-desk: watching src/ for changes…");
   watch(srcDir, { recursive: true }, () => {
     try { build(); } catch (error) { console.error("build failed:", error); }
   });

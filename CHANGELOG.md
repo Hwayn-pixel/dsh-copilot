@@ -35,14 +35,14 @@
 ### Fixed
 - **The settings panel could silently fail to appear.** A plugin's *client* module id has to match
   the plugin's name exactly; after the package was renamed the id was left behind, so the module was
-  in the roster but never attached — no error, no panel. Both halves now use `dsh-copilot-plugin`.
+  in the roster but never attached — no error, no panel. Both halves now use `dsh-prompt-desk`.
 - The bundled restart helper wrote a UTF-8 **BOM** into the saved address file, which made the
   URL unusable to any reader that does not strip it. It now writes plain UTF-8.
 
 ### 修复
 - **设置面板可能悄无声息地不出现。** 插件的*客户端*模块 id 必须和插件名完全一致；改名之后那个
   id 被落下了，于是模块在加载清单里、却始终没挂上去——不报错、也不显示。现在两半都用
-  `dsh-copilot-plugin`。
+  `dsh-prompt-desk`。
 - 附带的重启脚本会往地址文件里写 UTF-8 **BOM**，导致不剥离 BOM 的读取方拿到废 URL。现在写纯 UTF-8。
 
 > 每个版本号下方先给中文摘要，随后是详细英文条目。
@@ -59,10 +59,10 @@
 - **仓库的第一个测试**：`test/duel.test.mjs` 直接加载**构建产物** `lib/client.js`（stub 掉
   `window.__ModuleLoader__`），不依赖浏览器、设置服务或运行中的宿主。11 项断言，CI 里跑。
 - **⚠️ 一个给所有 DSH 插件作者的发现（血泪）**：**DSH 的插件 id 不支持 npm 作用域名**。
-  我先把包名改成 `@hwayn/dsh-copilot` 并逐一改好 profile 的依赖与 bundles——宿主照常加载（路由是通的），
+  我先把包名改成 `@hwayn/dsh-prompt-desk` 并逐一改好 profile 的依赖与 bundles——宿主照常加载（路由是通的），
   但**客户端半会被悄悄丢出加载清单**（导航里那一页直接消失，前端无任何报错）。
   名字必须三处一致且**不带作用域**：`package.json` 的 `name`、`cordis.patch.yml` 里的 `name`、
-  profile 的 `dependencies` 键 + `dsh.profile.bundles`。因此 npm 上的包名是 **`dsh-copilot-plugin`**。
+  profile 的 `dependencies` 键 + `dsh.profile.bundles`。因此 npm 上的包名是 **`dsh-prompt-desk`**。
 
 ### The job a co-pilot should actually do: "these two are fighting"
 
@@ -73,11 +73,11 @@
 - **First tests in the repository**: `test/duel.test.mjs` loads the *built* `lib/client.js` (stubbing
   `window.__ModuleLoader__`) with no browser, no settings scope and no running host. 11 assertions, run in CI.
 - **A finding worth passing on**: DSH plugin ids **do not support npm scoped names**. With
-  `@hwayn/dsh-copilot` the host still loaded the plugin (routes worked) but the *client* half was
+  `@hwayn/dsh-prompt-desk` the host still loaded the plugin (routes worked) but the *client* half was
   silently dropped from the module roster - the settings page just vanished, with no error. The name
   must be identical and unscoped in three places: `package.json` `name`, `cordis.patch.yml` `name`,
   and the profile's `dependencies` key plus `dsh.profile.bundles`. Hence the npm name
-  **`dsh-copilot-plugin`**.
+  **`dsh-prompt-desk`**.
 
 ## 0.1.0 — 2026-09-30
 

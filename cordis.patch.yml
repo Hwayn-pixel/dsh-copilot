@@ -1,6 +1,6 @@
-# dsh-copilot — bundle patch layer (declared by dsh.bundle.patch).
+# dsh-prompt-desk — bundle patch layer (declared by dsh.bundle.patch).
 # Registers this plugin's row into the web profile's plugin roster.
 # NOTE: this name must equal the package name (DSH plugin ids are unscoped).
 - insert:
-    - id: ui-copilot
-      name: 'dsh-copilot-plugin'
+    - id: ui-prompt-desk
+      name: 'dsh-prompt-desk'

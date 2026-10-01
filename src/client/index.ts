@@ -1,7 +1,7 @@
 /**
- * dsh-copilot — Browser half.
+ * dsh-prompt-desk — Browser half.
  *
- * One settings page ("副驾驶"):
+ * One settings page ("提示词工作台"):
  *   · **检查单** — the numbers a co-pilot calls out before takeoff (sections, bytes, tokens/turn)
  *   · **当前 system prompt** — the real assembled prompt, as sections or as one string
  *   · **我的家规** — write your own voice into the prompt; takes effect on the next turn
@@ -15,9 +15,9 @@
 import * as React from "react";
 
 const h = React.createElement;
-const NS = "ui-copilot";
-const ROUTE = "/dsh-copilot";
-const STYLE_ID = "dsh-copilot-style";
+const NS = "ui-prompt-desk";
+const ROUTE = "/dsh-prompt-desk";
+const STYLE_ID = "dsh-prompt-desk-style";
 
 // `remote` is the typert RPC namespace that exists in both 0.1.x and the 0.2 desktop app, and
 // `ctx.remote.settings` is its settings face. (The old `settingsScope` service was dropped in 0.2 -
@@ -303,8 +303,8 @@ function CopilotPanel(props: { scope: Scope<Value> }): React.ReactElement {
       h(
         "div",
         { className: "dshCo-head" },
-        h("div", { className: "dshCo-h dshCo-h--fox" }, "副驾驶"),
-        h("span", { className: "dshCo-sub" }, "dsh-copilot-plugin"),
+        h("div", { className: "dshCo-h dshCo-h--fox" }, "提示词工作台"),
+        h("span", { className: "dshCo-sub" }, "dsh-prompt-desk"),
         h("div", { className: "dshCo-grow" }),
         h("label", { className: "dshCo-row", style: { gap: 6 } },
           h("input", { type: "checkbox", checked: enabled, onChange: (e: any) => write({ enabled: e.target.checked }) }),
@@ -313,7 +313,7 @@ function CopilotPanel(props: { scope: Scope<Value> }): React.ReactElement {
         h("button", { className: "dshCo-btn", onClick: () => void load(), disabled: busy }, busy ? "读取中…" : "刷新"),
       ),
       h("div", { className: "dshCo-sub", style: { marginTop: 4 } },
-        "副驾驶不替你开飞机：它让你看清 system prompt 的每一段，写下你自己的家规，记下每一次改动。关掉开关，一切回到原样。"),
+        "它不替你写提示词：只让你看清 system prompt 的每一段、写下自己的家规、记下每一次改动。关掉开关，一切回到原样。"),
       h(
         "div",
         { className: "dshCo-stats" },
@@ -522,7 +522,7 @@ export function apply(ctx: any): void {
   const Section = () => h(CopilotPanel, { scope });
   ctx.slots.inject("settings.section", () =>
     ctx.slots.register(
-      { name: "settings.section", id: "copilot", order: 26, label: () => "副驾驶", inject: () => ({}) },
+      { name: "settings.section", id: "prompt-desk", order: 26, label: () => "提示词工作台", inject: () => ({}) },
       Section,
     ),
   );

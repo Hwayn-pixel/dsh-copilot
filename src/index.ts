@@ -1,11 +1,11 @@
 /// <reference types="node" />
 /**
- * dsh-copilot — Host half.
+ * dsh-prompt-desk — Host half.
  *
  * A co-pilot does four things, and this half does all four:
  *
  *   1. **Reads the instruments** — `ctx.systemPrompt.assemble()` returns the prompt as *sections*,
- *      and `/dsh-copilot/prompt` hands that to the settings page. The prompt stops being one
+ *      and `/dsh-prompt-desk/prompt` hands that to the settings page. The prompt stops being one
  *      opaque block and becomes a list you can look at.
  *   2. **Writes the pilot's voice** — the user's rules are registered as ordinary prompt sections
  *      (`copilot:pre` / `copilot:mid` / `copilot:post`), each one a *provider* that reads the
@@ -20,10 +20,10 @@ import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { homedir } from "node:os";
 
-export const name = "dsh-copilot-plugin";
-export const SETTINGS_NAMESPACE = "ui-copilot";
+export const name = "dsh-prompt-desk";
+export const SETTINGS_NAMESPACE = "ui-prompt-desk";
 
-const ROUTE_PREFIX = "/dsh-copilot";
+const ROUTE_PREFIX = "/dsh-prompt-desk";
 const NAMESPACE_PATTERN = /^[a-z][a-z0-9-]*$/;
 const HISTORY_KEEP = 40;
 
@@ -57,10 +57,10 @@ const RuleSchema = z.object({
 
 export const CopilotSchema = z
   .object({
-    enabled: z.boolean().default(true).description("总开关：关闭后 dsh-copilot 不再往 prompt 里写任何字"),
+    enabled: z.boolean().default(true).description("总开关：关闭后 dsh-prompt-desk 不再往 prompt 里写任何字"),
     rules: z.array(RuleSchema).default([]).description("你自己的家规：每条落进 prompt 的一个位置"),
   })
-  .description("dsh-copilot：看清、改写并记住 agent 的 system prompt");
+  .description("dsh-prompt-desk：看清、改写并记住 agent 的 system prompt");
 
 interface SettingsLike {
   get(ns: string): unknown;
@@ -112,7 +112,7 @@ let lastSignature = "";
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
 function historyFile(): string {
-  return join(process.env.DSH_HOME || join(homedir(), ".dsh"), "copilot", "history.json");
+  return join(process.env.DSH_HOME || join(homedir(), ".dsh"), "prompt-desk", "history.json");
 }
 
 function loadHistory(): void {
@@ -188,7 +188,7 @@ export function bandText(value: CopilotValue, band: BandName): string {
     const text = String(rule.text ?? "").trim();
     return title ? `### ${title}\n${text}` : text;
   });
-  return `## House rules (dsh-copilot, ${band})\n${blocks.join("\n\n")}`;
+  return `## House rules (dsh-prompt-desk, ${band})\n${blocks.join("\n\n")}`;
 }
 
 export function apply(ctx: HostContext): void {
@@ -230,7 +230,7 @@ export function apply(ctx: HostContext): void {
           }
         };
       },
-      "dsh-copilot: contribute house rules",
+      "dsh-prompt-desk: contribute house rules",
     );
   });
 
@@ -260,7 +260,7 @@ export function apply(ctx: HostContext): void {
                 | SystemPromptLike
                 | undefined;
 
-              // GET /dsh-copilot/prompt — the real assembled prompt, as sections plus one string.
+              // GET /dsh-prompt-desk/prompt — the real assembled prompt, as sections plus one string.
               if (req.method === "GET" && url.pathname === `${ROUTE_PREFIX}/prompt`) {
                 if (!prompt || typeof prompt.assemble !== "function") {
                   return ok(503, { ok: false, error: "systemPrompt 服务还没就绪" });
@@ -301,7 +301,7 @@ export function apply(ctx: HostContext): void {
                 });
               }
 
-              // GET /dsh-copilot/history — the logbook, newest last.
+              // GET /dsh-prompt-desk/history — the logbook, newest last.
               if (req.method === "GET" && url.pathname === `${ROUTE_PREFIX}/history`) {
                 const value = readValue(settingsOf());
                 record(value);
@@ -314,7 +314,7 @@ export function apply(ctx: HostContext): void {
             }
           },
         }),
-      "dsh-copilot: prompt routes",
+      "dsh-prompt-desk: prompt routes",
     );
   });
 }
