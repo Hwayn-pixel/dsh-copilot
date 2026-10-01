@@ -1,5 +1,7 @@
 # dsh-copilot
 
+**npm:** [`dsh-copilot-plugin`](https://www.npmjs.com/package/dsh-copilot-plugin) · **one-line install:** `dsh plugin --profile web add dsh-copilot-plugin`
+
 > 一个"副驾驶"，不是"自动驾驶"。
 > A co-pilot, not an autopilot.
 
