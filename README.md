@@ -1,5 +1,10 @@
 # dsh-copilot
 
+[![npm](https://img.shields.io/npm/v/dsh-copilot-plugin?color=4c8bf5)](https://www.npmjs.com/package/dsh-copilot-plugin)
+[![license](https://img.shields.io/npm/l/dsh-copilot-plugin?color=black)](LICENSE)
+[![ci](https://github.com/Hwayn-pixel/dsh-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/Hwayn-pixel/dsh-copilot/actions/workflows/ci.yml)
+[![DSH](https://img.shields.io/badge/DSH-0.1.5--rc.1-6b46c1)](#兼容性)
+
 **npm:** [`dsh-copilot-plugin`](https://www.npmjs.com/package/dsh-copilot-plugin) · **one-line install:** `dsh plugin --profile web add dsh-copilot-plugin`
 
 > 一个"副驾驶"，不是"自动驾驶"。
