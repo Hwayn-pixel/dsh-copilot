@@ -63,41 +63,61 @@ const ROUTES: { title: string; text: string; band: Band }[] = [
 ];
 
 const CSS = `
-.dshCo-root{display:flex;flex-direction:column;gap:14px;font-size:13.5px;line-height:1.6}
-.dshCo-card{border:1px solid rgba(128,128,128,.22);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.04)}
+/* 幻弈的设计语言：柔和、有呼吸；层次靠「光」和「间距」，不靠「线」。 */
+.dshCo-root{
+  --co-r-xs:6px;--co-r-sm:10px;--co-r-md:14px;--co-r-lg:20px;--co-pill:999px;
+  --co-tone:rgba(128,128,128,.055);--co-tone-2:rgba(128,128,128,.10);--co-tone-3:rgba(128,128,128,.16);
+  --co-line:1px solid rgba(128,128,128,.18);
+  --co-accent:rgba(48,126,222,.9);
+  --co-sh-1:0 1px 2px rgba(0,0,0,.05);
+  --co-t:.18s ease;
+  display:flex;flex-direction:column;gap:16px;font-size:13.5px;line-height:1.65
+}
+/* 卡片：不画边，用底色 + 一点点浮起 */
+.dshCo-card{background:var(--co-tone);border-radius:var(--co-r-md);padding:16px 18px;box-shadow:var(--co-sh-1);transition:background var(--co-t)}
+.dshCo-card:hover{background:var(--co-tone-2)}
 .dshCo-head{display:flex;align-items:center;gap:10px}
-.dshCo-h{font-size:15px;font-weight:600}
+.dshCo-h{font-size:15px;font-weight:600;letter-spacing:.01em}
+.dshCo-h--fox::before{content:"🦊";font-size:13px;margin-right:6px;opacity:.85}
 .dshCo-sub{font-size:12px;opacity:.62}
 .dshCo-grow{flex:1}
-.dshCo-stats{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;opacity:.75;margin-top:8px}
-.dshCo-stat b{font-size:17px;font-weight:650;opacity:1;margin-right:4px}
-.dshCo-btn{border:1px solid rgba(128,128,128,.3);border-radius:10px;padding:5px 11px;font:inherit;font-size:12.5px;background:transparent;color:inherit;cursor:pointer}
-.dshCo-btn:hover{background:rgba(128,128,128,.1)}
+.dshCo-stats{display:flex;gap:22px;flex-wrap:wrap;font-size:12px;opacity:.72;margin-top:12px}
+.dshCo-stat{display:flex;align-items:baseline;gap:5px}
+.dshCo-stat b{font-size:18px;font-weight:650;opacity:1;letter-spacing:-.01em}
+.dshCo-btn{border:var(--co-line);border-radius:var(--co-r-sm);padding:5px 12px;font:inherit;font-size:12.5px;background:transparent;color:inherit;cursor:pointer;transition:background var(--co-t),border-color var(--co-t),color var(--co-t),filter var(--co-t)}
+.dshCo-btn:hover{background:var(--co-tone-2);border-color:rgba(128,128,128,.28)}
+.dshCo-btn:focus-visible,.dshCo-chip:focus-visible,.dshCo-in:focus-visible,.dshCo-sel:focus-visible,.dshCo-ta:focus-visible{outline:2px solid var(--co-accent);outline-offset:1px}
 .dshCo-btn[disabled]{opacity:.45;cursor:default}
-.dshCo-btn--go{border-color:rgba(36,121,219,.5)}
-.dshCo-chip{border:1px solid rgba(128,128,128,.28);border-radius:999px;padding:4px 12px;font-size:12px;background:transparent;color:inherit;cursor:pointer}
-.dshCo-chip:hover{background:rgba(128,128,128,.12)}
-.dshCo-sec{border-top:1px solid rgba(128,128,128,.16);padding:7px 0;cursor:pointer}
+.dshCo-btn--go{border-color:transparent;background:var(--co-accent);color:#fff}
+.dshCo-btn--go:hover{background:var(--co-accent);filter:brightness(1.06)}
+.dshCo-chip{border:var(--co-line);border-radius:var(--co-pill);padding:4px 12px;font-size:12px;background:transparent;color:inherit;cursor:pointer;transition:background var(--co-t),border-color var(--co-t)}
+.dshCo-chip:hover{background:var(--co-tone-2);border-color:rgba(128,128,128,.3)}
+.dshCo-sec{border-top:var(--co-line);padding:8px 2px;cursor:pointer;border-radius:var(--co-r-sm);transition:background var(--co-t)}
 .dshCo-sec:first-child{border-top:0}
+.dshCo-sec:hover{background:var(--co-tone-2)}
 .dshCo-secTop{display:flex;align-items:baseline;gap:8px;font-size:12.5px}
 .dshCo-secName{font-family:ui-monospace,Consolas,monospace;font-size:11.5px}
 .dshCo-secBy{margin-left:auto;opacity:.55;font-size:11px}
-.dshCo-pre{margin:8px 0 2px;padding:10px 12px;border-radius:10px;background:rgba(128,128,128,.09);white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;line-height:1.5;max-height:340px;overflow:auto}
-.dshCo-rule{border:1px solid rgba(128,128,128,.2);border-radius:12px;padding:10px 12px;margin-top:8px}
+.dshCo-pre{margin:8px 0 2px;padding:11px 13px;border-radius:var(--co-r-sm);background:var(--co-tone-2);white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,Consolas,monospace;font-size:11.5px;line-height:1.55;max-height:340px;overflow:auto}
+.dshCo-rule{border:var(--co-line);border-radius:var(--co-r-md);padding:11px 13px;margin-top:10px;transition:background var(--co-t),border-color var(--co-t)}
+.dshCo-rule:hover{border-color:rgba(128,128,128,.26)}
 .dshCo-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.dshCo-in,.dshCo-sel,.dshCo-ta{font:inherit;font-size:12.5px;padding:6px 9px;border-radius:9px;border:1px solid rgba(128,128,128,.28);background:rgba(128,128,128,.06);color:inherit}
+.dshCo-in,.dshCo-sel,.dshCo-ta{font:inherit;font-size:12.5px;padding:6px 10px;border-radius:var(--co-r-sm);border:var(--co-line);background:var(--co-tone);color:inherit;transition:background var(--co-t),border-color var(--co-t)}
+.dshCo-in:hover,.dshCo-ta:hover,.dshCo-sel:hover{background:var(--co-tone-2)}
+.dshCo-in:focus,.dshCo-ta:focus,.dshCo-sel:focus{background:var(--co-tone-2);border-color:rgba(128,128,128,.3)}
 .dshCo-in{flex:1;min-width:120px}
-.dshCo-ta{width:100%;min-height:80px;margin-top:7px;resize:vertical;line-height:1.55;font-family:inherit}
-.dshCo-x{border:0;background:transparent;color:inherit;opacity:.55;cursor:pointer;font-size:15px;padding:2px 6px;border-radius:8px}
-.dshCo-x:hover{opacity:1;background:rgba(128,128,128,.14)}
-.dshCo-hint{display:flex;gap:8px;align-items:flex-start;font-size:12.5px;padding:5px 0}
-.dshCo-dot{width:7px;height:7px;border-radius:50%;margin-top:7px;flex:0 0 auto}
+.dshCo-ta{width:100%;min-height:84px;margin-top:8px;resize:vertical;line-height:1.6;font-family:inherit}
+.dshCo-x{border:0;background:transparent;color:inherit;opacity:.5;cursor:pointer;font-size:15px;padding:2px 7px;border-radius:var(--co-r-sm);transition:opacity var(--co-t),background var(--co-t)}
+.dshCo-x:hover{opacity:1;background:var(--co-tone-3)}
+.dshCo-hint{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;padding:5px 0}
+.dshCo-dot{width:7px;height:7px;border-radius:50%;margin-top:7px;flex:0 0 auto;box-shadow:0 0 0 3px rgba(128,128,128,.10)}
 .dshCo-empty{font-size:12.5px;opacity:.6;padding:4px 0}
-.dshCo-tag{font-size:11px;padding:1px 7px;border-radius:999px;background:rgba(128,128,128,.14)}
-.dshCo-log{border-top:1px solid rgba(128,128,128,.16);padding:8px 0;display:flex;gap:10px;align-items:flex-start;font-size:12.5px}
+.dshCo-tag{font-size:11px;padding:1px 8px;border-radius:var(--co-pill);background:var(--co-tone-3)}
+.dshCo-log{border-top:var(--co-line);padding:9px 0;display:flex;gap:10px;align-items:flex-start;font-size:12.5px}
 .dshCo-log:first-of-type{border-top:0}
-.dshCo-when{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;opacity:.6;flex:0 0 72px}
+.dshCo-when{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;opacity:.6;flex:0 0 76px}
 .dshCo-now{color:#4f9d6a;font-weight:600}
+.dshCo-root input[type="checkbox"]{accent-color:var(--co-accent);cursor:pointer}
 `;
 
 function ensureStyle(): void {
@@ -278,7 +298,8 @@ function CopilotPanel(props: { scope: Scope<Value> }): React.ReactElement {
       h(
         "div",
         { className: "dshCo-head" },
-        h("div", { className: "dshCo-h" }, "副驾驶 · dsh-copilot"),
+        h("div", { className: "dshCo-h dshCo-h--fox" }, "副驾驶"),
+        h("span", { className: "dshCo-sub" }, "dsh-copilot-plugin"),
         h("div", { className: "dshCo-grow" }),
         h("label", { className: "dshCo-row", style: { gap: 6 } },
           h("input", { type: "checkbox", checked: enabled, onChange: (e: any) => write({ enabled: e.target.checked }) }),

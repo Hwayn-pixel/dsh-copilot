@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.2.2
+
+### Changed
+- The panel now follows the house design language: cards lose their hard borders and separate by
+  **tone + spacing** instead, radii follow a 6/10/14/20/pill ladder, the accent colour is reserved
+  for **interaction only** (primary button, focus ring, checkbox), and there is exactly one soft
+  shadow. Soft, with room to breathe — same facts, quieter furniture.
+
+### 更改
+- 面板改按我们自己的设计语言重绘：卡片不再画硬边，改用**底色和间距**分层；圆角走
+  6/10/14/20/胶囊 的阶梯；强调色**只给交互**（主按钮、焦点环、勾选框）；只用一层柔和阴影。
+  柔和、有呼吸——数字没变，家具安静了。
+
 ## 0.2.1
 
 ### Fixed
