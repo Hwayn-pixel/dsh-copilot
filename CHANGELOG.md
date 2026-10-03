@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.0 — 2026-10-03
+
+### Localized UI (zh / en), English source comments, English README
+
+- **The settings panel now localizes itself.** Chinese browsers get Chinese, everyone else gets
+  English — the same pattern used in `dsh-touchstone`: read `navigator.language`, then wrap every
+  user-visible string in `t("中文", "English")`. No configuration, no restart.
+- **Source comments are English throughout** (`src/index.ts` and `src/client/index.ts`).
+- **README split by language:** `README.md` is now English, the original Chinese text moved to
+  `README.zh-CN.md`, and each links to the other at the top. The Chinese README is included in the
+  published package.
+- No behavior, route path (`/dsh-prompt-desk`), settings namespace (`ui-prompt-desk`) or section
+  names (`copilot:pre` / `copilot:mid` / `copilot:post`) changed — this release is copy and comments
+  only.
+
 ## 0.3.2
 
 ### 输入框改「本地草稿 + 失焦落盘」——修掉会打断中文输入法的乱码

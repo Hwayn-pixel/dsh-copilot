@@ -1,13 +1,13 @@
 /**
  * dsh-prompt-desk — Browser half.
  *
- * One settings page ("提示词工作台"):
- *   · **检查单** — the numbers a co-pilot calls out before takeoff (sections, bytes, tokens/turn)
- *   · **当前 system prompt** — the real assembled prompt, as sections or as one string
- *   · **我的家规** — write your own voice into the prompt; takes effect on the next turn
- *   · **航线** — one-click rule templates
- *   · **黑匣子** — every change, with one-click restore
- *   · **体检** — what repeats, what is huge, what is empty. Facts only.
+ * One settings page ("Prompt Desk"):
+ *   · **Checklist** — the numbers a co-pilot calls out before takeoff (sections, bytes, tokens/turn)
+ *   · **Current system prompt** — the real assembled prompt, as sections or as one string
+ *   · **My house rules** — write your own voice into the prompt; takes effect on the next turn
+ *   · **Routes** — one-click rule templates
+ *   · **Black box** — every change, with one-click restore
+ *   · **Inspection** — what repeats, what is huge, what is empty. Facts only.
  *
  * `React.createElement` rather than JSX: this file is transpiled straight to CommonJS for the
  * client-module loader, which has no JSX pass.
@@ -15,6 +15,14 @@
 import * as React from "react";
 
 const h = React.createElement;
+
+/** Pick a language from the browser: Chinese if the UI language looks Chinese, English otherwise. */
+const LANG = typeof navigator !== "undefined" && /^zh/i.test(String(navigator.language || "")) ? "zh" : "en";
+/** Inline bilingual string. */
+function t(zh: string, en: string): string {
+  return LANG === "zh" ? zh : en;
+}
+
 const NS = "ui-prompt-desk";
 const ROUTE = "/dsh-prompt-desk";
 const STYLE_ID = "dsh-prompt-desk-style";
@@ -52,23 +60,23 @@ interface HistoryEntry {
 }
 
 const BANDS: { id: Band; label: string }[] = [
-  { id: "pre", label: "靠前 · persona 之后" },
-  { id: "mid", label: "中间 · 工具说明之后" },
-  { id: "post", label: "靠后 · prompt 末尾" },
+  { id: "pre", label: t("靠前 · persona 之后", "Front · after persona") },
+  { id: "mid", label: t("中间 · 工具说明之后", "Middle · after tools") },
+  { id: "post", label: t("靠后 · prompt 末尾", "Back · end of prompt") },
 ];
 
-/** 航线：现成的一句话，点一下就上路。 */
+/** Routes: pre-built one-liners, one click and you are on your way. */
 const ROUTES: { title: string; text: string; band: Band }[] = [
-  { title: "先给结论", text: "回答前先给结论，再给理由。", band: "mid" },
-  { title: "不确定就说不确定", text: "不确定的地方要明说，不要编造。", band: "mid" },
-  { title: "用中文回答", text: "用中文回答，除非我要求别的语言。", band: "pre" },
-  { title: "改动前先备份", text: "修改我已有的文件之前，先做备份。", band: "mid" },
-  { title: "少用列表", text: "多用完整的句子，少用分点列表。", band: "post" },
-  { title: "别急着动我的东西", text: "要动我正在使用的服务或文件之前，先问我一句。", band: "pre" },
+  { title: t("先给结论", "Lead with the conclusion"), text: t("回答前先给结论，再给理由。", "State the conclusion first, then the reasoning."), band: "mid" },
+  { title: t("不确定就说不确定", "Flag uncertainty"), text: t("不确定的地方要明说，不要编造。", "Say plainly when you are unsure; do not make things up."), band: "mid" },
+  { title: t("用中文回答", "Answer in Chinese"), text: t("用中文回答，除非我要求别的语言。", "Answer in Chinese unless I ask for another language."), band: "pre" },
+  { title: t("改动前先备份", "Back up before editing"), text: t("修改我已有的文件之前，先做备份。", "Back up a file before you modify it."), band: "mid" },
+  { title: t("少用列表", "Fewer bullet lists"), text: t("多用完整的句子，少用分点列表。", "Prefer full sentences over bulleted lists."), band: "post" },
+  { title: t("别急着动我的东西", "Ask before touching my stuff"), text: t("要动我正在使用的服务或文件之前，先问我一句。", "Ask me before you touch a service or file I am using."), band: "pre" },
 ];
 
 const CSS = `
-/* 幻弈的设计语言：柔和、有呼吸；层次靠「光」和「间距」，不靠「线」。 */
+/* The design language here: soft, with room to breathe; layering comes from "light" and "spacing", not "lines". */
 .dshCo-root{
   --co-r-xs:6px;--co-r-sm:10px;--co-r-md:14px;--co-r-lg:20px;--co-pill:999px;
   --co-tone:rgba(128,128,128,.055);--co-tone-2:rgba(128,128,128,.10);--co-tone-3:rgba(128,128,128,.16);
@@ -78,7 +86,7 @@ const CSS = `
   --co-t:.18s ease;
   display:flex;flex-direction:column;gap:16px;font-size:13.5px;line-height:1.65
 }
-/* 卡片：不画边，用底色 + 一点点浮起 */
+/* Cards: no hard borders — separate them by tone plus a touch of lift. */
 .dshCo-card{background:var(--co-tone);border-radius:var(--co-r-md);padding:16px 18px;box-shadow:var(--co-sh-1);transition:background var(--co-t)}
 .dshCo-card:hover{background:var(--co-tone-2)}
 .dshCo-head{display:flex;align-items:center;gap:10px}
@@ -145,12 +153,13 @@ const kb = (n: number): string => `${(n / 1024).toFixed(1)} KB`;
 
 /** Cheap, honest lint. No model, no guessing, no scores. */
 
-// 冲突检测的词汇表。刻意不用裸的“要”（它藏在“不要”里），免得把否定词当成肯定词。
+// Conflict-detection vocabulary. We deliberately omit a bare 「要」 (it hides inside 「不要」), so a
+// negation is never read as an affirmation.
 const NEG_WORDS = ["不要", "别", "禁止", "不准", "切勿", "避免", "无需", "不必", "never", "don't", "do not", "avoid", "must not"];
 const POS_WORDS = ["必须", "一定", "务必", "总是", "始终", "一律", "always", "must", "ensure", "required"];
 const STOP = new Set(["的", "了", "我", "你", "他", "她", "它", "是", "在", "和", "与", "就", "都", "也", "还", "把", "被", "让", "给", "这", "那", "很", "the", "a", "an", "to", "of", "and", "or", "is", "are", "be", "it", "for", "on", "in"]);
 
-/** 话题词：拉丁词 + 中文二字组，去掉停用词。粗糙但够用。 */
+/** Topic tokens: Latin words plus Chinese bigrams, stop words removed. Crude, but good enough. */
 function topicTokens(text: string): Set<string> {
   const cleaned = String(text || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
   const out = new Set<string>();
@@ -174,13 +183,17 @@ function polarity(text: string): "neg" | "pos" | "both" | "none" {
   return neg && pos ? "both" : neg ? "neg" : pos ? "pos" : "none";
 }
 
-/** 两条家规之间“可能在打架”的判断——只看事实，只给线索，最多报三条。 */
+/** Whether two house rules "might be fighting" — facts only, clues only, at most three findings. */
 function ruleDuel(rules: Rule[]): { color: string; text: string }[] {
   const out: { color: string; text: string }[] = [];
   const live = rules
     .map((rule, index) => ({ index, rule, toks: topicTokens(rule.text ?? ""), pol: polarity(rule.text ?? "") }))
     .filter((item) => item.rule.enabled !== false && String(item.rule.text ?? "").trim());
-  const name = (item: { index: number; rule: Rule }) => `第${item.index + 1}条${item.rule.title ? `「${item.rule.title}」` : ""}`;
+  const name = (item: { index: number; rule: Rule }) =>
+    t(
+      `第${item.index + 1}条${item.rule.title ? `「${item.rule.title}」` : ""}`,
+      `rule ${item.index + 1}${item.rule.title ? ` "${item.rule.title}"` : ""}`,
+    );
   for (let a = 0; a < live.length; a++) {
     for (let b = a + 1; b < live.length && out.length < 3; b++) {
       const A = live[a];
@@ -191,12 +204,25 @@ function ruleDuel(rules: Rule[]): { color: string; text: string }[] {
       for (const tok of A.toks) if (B.toks.has(tok)) shared += 1;
       const overlap = shared / denom;
       const opposite = A.pol !== "none" && B.pol !== "none" && A.pol !== B.pol;
-      // 反过来会错：措辞几乎相同的“always X”和“never X”，重合度先撞上“重复”阀值，
-      // 于是把一对打架说成了同一句话。先判矛盾，再判重复。
+      // Order matters the other way round: an "always X" and a "never X" with near-identical
+      // wording hit the "duplicate" threshold first and get reported as the same sentence. So check
+      // contradiction before duplication.
       if (overlap >= 0.34 && opposite) {
-        out.push({ color: "#d0604c", text: `${name(A)} 和 ${name(B)} 可能在打架：都在说同一件事，一个有「要」、一个有「不要」。自己看一眼。` });
+        out.push({
+          color: "#d0604c",
+          text: t(
+            `${name(A)} 和 ${name(B)} 可能在打架：都在说同一件事，一个有「要」、一个有「不要」。自己看一眼。`,
+            `${name(A)} and ${name(B)} may be fighting: they talk about the same thing, one says "do" and the other "don't". Take a look.`,
+          ),
+        });
       } else if (overlap >= 0.75) {
-        out.push({ color: "#e2a13c", text: `${name(A)} 和 ${name(B)} 基本是同一句话——说一遍就够了。` });
+        out.push({
+          color: "#e2a13c",
+          text: t(
+            `${name(A)} 和 ${name(B)} 基本是同一句话——说一遍就够了。`,
+            `${name(A)} and ${name(B)} are basically the same sentence — saying it once is enough.`,
+          ),
+        });
       }
     }
   }
@@ -216,18 +242,42 @@ function lint(sections: { name: string; bytes: number; text: string }[], rules: 
   }
   let dupes = 0;
   for (const [, names] of owners) if (names.size > 1) dupes += 1;
-  if (dupes) out.push({ color: "#e2a13c", text: `有 ${dupes} 处文字在不止一段里出现——大概率是同一件事说了两遍。展开“当前 system prompt”就能对上。` });
+  if (dupes) out.push({
+    color: "#e2a13c",
+    text: t(
+      `有 ${dupes} 处文字在不止一段里出现——大概率是同一件事说了两遍。展开“当前 system prompt”就能对上。`,
+      `${dupes} line(s) appear in more than one section — most likely the same thing said twice. Expand "Current system prompt" to line them up.`,
+    ),
+  });
   const big = sections.filter((s) => s.bytes > 6000);
-  if (big.length) out.push({ color: "#e2a13c", text: `有 ${big.length} 段偏长（>6KB）：${big.slice(0, 3).map((s) => s.name).join("、")}。长段会挤掉更重要的上下文。` });
+  if (big.length) out.push({
+    color: "#e2a13c",
+    text: t(
+      `有 ${big.length} 段偏长（>6KB）：${big.slice(0, 3).map((s) => s.name).join("、")}。长段会挤掉更重要的上下文。`,
+      `${big.length} section(s) run long (>6KB): ${big.slice(0, 3).map((s) => s.name).join(", ")}. Long sections crowd out more important context.`,
+    ),
+  });
   const blank = (rules ?? []).filter((r) => r && r.enabled !== false && !String(r.text ?? "").trim());
-  if (blank.length) out.push({ color: "#e2a13c", text: `有 ${blank.length} 条规则开着但没写正文，它们不会进 prompt。` });
+  if (blank.length) out.push({
+    color: "#e2a13c",
+    text: t(
+      `有 ${blank.length} 条规则开着但没写正文，它们不会进 prompt。`,
+      `${blank.length} rule(s) are enabled but have no text; they will not enter the prompt.`,
+    ),
+  });
   out.push(...ruleDuel(rules ?? []));
   const mine = (rules ?? []).filter((r) => r && r.enabled !== false && String(r.text ?? "").trim()).length;
   out.push({
     color: "#4f9d6a",
     text: mine
-      ? `你自己的 ${mine} 条家规已经在 prompt 里了（段名以 copilot: 开头），下一轮就生效。`
-      : "你还没有写家规。写一句就会立刻生效——不用重启。",
+      ? t(
+          `你自己的 ${mine} 条家规已经在 prompt 里了（段名以 copilot: 开头），下一轮就生效。`,
+          `Your ${mine} house rule(s) are already in the prompt (their section names start with copilot:) and take effect on the next turn.`,
+        )
+      : t(
+          "你还没有写家规。写一句就会立刻生效——不用重启。",
+          "You have not written any house rules yet. Write one and it takes effect immediately — no restart needed.",
+        ),
   });
   return out;
 }
@@ -255,7 +305,7 @@ function CopilotPanel(props: { scope: Scope<Value> }): React.ReactElement {
         fetch(`${ROUTE}/history`, { cache: "no-store" }),
       ]);
       const pj = await pres.json();
-      if (!pj.ok) throw new Error(pj.error || "读取失败");
+      if (!pj.ok) throw new Error(pj.error || t("读取失败", "read failed"));
       setPrompt(pj);
       const hj = await hres.json();
       if (hj.ok) setLogs(hj.entries ?? []);
@@ -306,82 +356,85 @@ function CopilotPanel(props: { scope: Scope<Value> }): React.ReactElement {
   return h(
     "div",
     { className: "dshCo-root" },
-    // ── 检查单
+    // ── checklist
     h(
       "div",
       { className: "dshCo-card" },
       h(
         "div",
         { className: "dshCo-head" },
-        h("div", { className: "dshCo-h dshCo-h--fox" }, "提示词工作台"),
+        h("div", { className: "dshCo-h dshCo-h--fox" }, t("提示词工作台", "Prompt Desk")),
         h("span", { className: "dshCo-sub" }, "dsh-prompt-desk"),
         h("div", { className: "dshCo-grow" }),
         h("label", { className: "dshCo-row", style: { gap: 6 } },
           h("input", { type: "checkbox", checked: enabled, onChange: (e: any) => write({ enabled: e.target.checked }) }),
-          h("span", { className: "dshCo-sub" }, "启用"),
+          h("span", { className: "dshCo-sub" }, t("启用", "Enabled")),
         ),
-        h("button", { className: "dshCo-btn", onClick: () => void load(), disabled: busy }, busy ? "读取中…" : "刷新"),
+        h("button", { className: "dshCo-btn", onClick: () => void load(), disabled: busy }, busy ? t("读取中…", "Loading…") : t("刷新", "Refresh")),
       ),
       h("div", { className: "dshCo-sub", style: { marginTop: 4 } },
-        "它不替你写提示词：只让你看清 system prompt 的每一段、写下自己的家规、记下每一次改动。关掉开关，一切回到原样。"),
+        t(
+          "它不替你写提示词：只让你看清 system prompt 的每一段、写下自己的家规、记下每一次改动。关掉开关，一切回到原样。",
+          "It does not write your prompt for you: it lets you see every section of the system prompt, write your own house rules, and log every change. Turn the switch off and everything goes back to the way it was.",
+        )),
       h(
         "div",
         { className: "dshCo-stats" },
-        h("div", { className: "dshCo-stat" }, h("b", null, String(sections.length || "—")), "段"),
-        h("div", { className: "dshCo-stat" }, h("b", null, prompt ? kb(prompt.bytes) : "—"), "提示词"),
-        h("div", { className: "dshCo-stat" }, h("b", null, prompt ? `≈${prompt.tokens}` : "—"), "token / 轮"),
-        h("div", { className: "dshCo-stat" }, h("b", null, String(mineSections.length)), "你的段"),
-        h("div", { className: "dshCo-stat" }, h("b", null, String(warnings)), "条体检提醒"),
+        h("div", { className: "dshCo-stat" }, h("b", null, String(sections.length || "—")), t("段", "sections")),
+        h("div", { className: "dshCo-stat" }, h("b", null, prompt ? kb(prompt.bytes) : "—"), t("提示词", "prompt")),
+        h("div", { className: "dshCo-stat" }, h("b", null, prompt ? `≈${prompt.tokens}` : "—"), t("token / 轮", "tokens / turn")),
+        h("div", { className: "dshCo-stat" }, h("b", null, String(mineSections.length)), t("你的段", "your sections")),
+        h("div", { className: "dshCo-stat" }, h("b", null, String(warnings)), t("条体检提醒", "lint alerts")),
       ),
     ),
-    err ? h("div", { className: "dshCo-card", style: { color: "#d0604c" } }, `读不到 prompt：${err}`) : null,
-    // ── 当前 system prompt
+    err ? h("div", { className: "dshCo-card", style: { color: "#d0604c" } }, t(`读不到 prompt：${err}`, `Cannot read the prompt: ${err}`)) : null,
+    // ── current system prompt
     h(
       "div",
       { className: "dshCo-card" },
       h("div", { className: "dshCo-head" },
-        h("div", { className: "dshCo-h" }, "当前 system prompt"),
+        h("div", { className: "dshCo-h" }, t("当前 system prompt", "Current system prompt")),
         h("div", { className: "dshCo-grow" }),
-        h("button", { className: "dshCo-btn", onClick: () => setWhole(!whole) }, whole ? "看分段" : "看整篇"),
+        h("button", { className: "dshCo-btn", onClick: () => setWhole(!whole) }, whole ? t("看分段", "By section") : t("看整篇", "Whole text")),
       ),
       whole
-        ? h("pre", { className: "dshCo-pre", style: { maxHeight: 420 } }, prompt?.rendered ?? "(还没读到)")
+        ? h("pre", { className: "dshCo-pre", style: { maxHeight: 420 } }, prompt?.rendered ?? t("(还没读到)", "(nothing loaded yet)"))
         : h(
             "div",
             { style: { marginTop: 6 } },
             sections.length === 0
-              ? h("div", { className: "dshCo-empty" }, "（还没读到 prompt）")
+              ? h("div", { className: "dshCo-empty" }, t("（还没读到 prompt）", "(no prompt loaded yet)"))
               : sections.map((section) =>
                   h(
                     "div",
                     { className: "dshCo-sec", key: section.name, onClick: () => setOpen(open === section.name ? null : section.name) },
                     h("div", { className: "dshCo-secTop" },
                       h("span", { className: "dshCo-secName" }, section.name),
-                      section.name.startsWith("copilot:") ? h("span", { className: "dshCo-tag" }, "你的") : null,
+                      section.name.startsWith("copilot:") ? h("span", { className: "dshCo-tag" }, t("你的", "yours")) : null,
                       h("span", { className: "dshCo-secBy" }, kb(section.bytes)),
                     ),
-                    open === section.name ? h("pre", { className: "dshCo-pre" }, section.text || "(空)") : null,
+                    open === section.name ? h("pre", { className: "dshCo-pre" }, section.text || t("(空)", "(empty)")) : null,
                   ),
                 ),
           ),
     ),
-    // ── 我的家规
+    // ── my house rules
     h(
       "div",
       { className: "dshCo-card" },
       h("div", { className: "dshCo-head" },
-        h("div", { className: "dshCo-h" }, "我的家规"),
+        h("div", { className: "dshCo-h" }, t("我的家规", "My house rules")),
         h("div", { className: "dshCo-grow" }),
-        h("button", { className: "dshCo-btn dshCo-btn--go", onClick: () => addRule() }, "+ 加一条"),
+        h("button", { className: "dshCo-btn dshCo-btn--go", onClick: () => addRule() }, t("+ 加一条", "+ Add rule")),
       ),
-      h("div", { className: "dshCo-sub", style: { marginTop: 4 } }, "写进 system prompt 的话。位置决定它出现在哪儿；改完下一轮就生效。"),
+      h("div", { className: "dshCo-sub", style: { marginTop: 4 } }, t("写进 system prompt 的话。位置决定它出现在哪儿；改完下一轮就生效。", "Words written into the system prompt. The band decides where they appear; an edit takes effect on the next turn.")),
       h(
         "div",
         { className: "dshCo-row", style: { marginTop: 8 } },
-        h("span", { className: "dshCo-sub" }, "航线："),
+        h("span", { className: "dshCo-sub" }, t("航线：", "Routes:")),
         ...ROUTES.map((route, index) => h("button", { className: "dshCo-chip", key: index, onClick: () => addRule(route) }, route.title)),
       ),
-      draft.length === 0 ? h("div", { className: "dshCo-empty", style: { marginTop: 6 } }, "还没有家规。点上面的「航线」，或者自己写一条。") : null,
+      draft.length === 0 ? h("div", { className: "dshCo-empty", style: { marginTop: 6 } }, t("还没有家规。点上面的「航线」，或者自己写一条。", "No house rules yet. Pick a route above, or write one yourself.")) : null,
       draft.map((rule, index) =>
         h(
           "div",
@@ -390,33 +443,36 @@ function CopilotPanel(props: { scope: Scope<Value> }): React.ReactElement {
             "div",
             { className: "dshCo-row" },
             h("input", { type: "checkbox", checked: rule.enabled !== false, onChange: (e: any) => applyRules(draft.map((r, i) => (i === index ? { ...r, enabled: e.target.checked } : r))) }),
-            h("input", { className: "dshCo-in", value: rule.title ?? "", placeholder: "标题（只给你看）", onChange: (e: any) => setRule(index, { title: e.target.value }) }),
+            h("input", { className: "dshCo-in", value: rule.title ?? "", placeholder: t("标题（只给你看）", "Title (for your eyes only)"), onChange: (e: any) => setRule(index, { title: e.target.value }) }),
             h("select", { className: "dshCo-sel", value: rule.band ?? "mid", onChange: (e: any) => applyRules(draft.map((r, i) => (i === index ? { ...r, band: e.target.value as Band } : r))) },
               ...BANDS.map((band) => h("option", { key: band.id, value: band.id }, band.label))),
-            h("button", { className: "dshCo-x", title: "上移", onMouseDown: (e: any) => e.preventDefault(), onClick: () => move(index, -1) }, "↑"),
-            h("button", { className: "dshCo-x", title: "下移", onMouseDown: (e: any) => e.preventDefault(), onClick: () => move(index, 1) }, "↓"),
-            h("button", { className: "dshCo-x", title: "删除", onMouseDown: (e: any) => e.preventDefault(), onClick: () => delRule(index) }, "×"),
+            h("button", { className: "dshCo-x", title: t("上移", "Move up"), onMouseDown: (e: any) => e.preventDefault(), onClick: () => move(index, -1) }, "↑"),
+            h("button", { className: "dshCo-x", title: t("下移", "Move down"), onMouseDown: (e: any) => e.preventDefault(), onClick: () => move(index, 1) }, "↓"),
+            h("button", { className: "dshCo-x", title: t("删除", "Delete"), onMouseDown: (e: any) => e.preventDefault(), onClick: () => delRule(index) }, "×"),
           ),
           h("textarea", {
             className: "dshCo-ta",
             value: rule.text ?? "",
-            placeholder: "写进 prompt 的文字，例如：\n- 先给结论，再给理由。\n- 不确定就说不确定，不要编。",
+            placeholder: t(
+              "写进 prompt 的文字，例如：\n- 先给结论，再给理由。\n- 不确定就说不确定，不要编。",
+              "Text to write into the prompt, for example:\n- Lead with the conclusion, then the reasoning.\n- Flag uncertainty; do not invent.",
+            ),
             onChange: (e: any) => setRule(index, { text: e.target.value }),
           }),
         ),
       ),
     ),
-    // ── 黑匣子
+    // ── black box
     h(
       "div",
       { className: "dshCo-card" },
       h("div", { className: "dshCo-head" },
-        h("div", { className: "dshCo-h" }, "黑匣子"),
+        h("div", { className: "dshCo-h" }, t("黑匣子", "Black box")),
         h("div", { className: "dshCo-grow" }),
-        h("span", { className: "dshCo-sub" }, "家规每次改变都会记一笔（最近 40 笔）"),
+        h("span", { className: "dshCo-sub" }, t("家规每次改变都会记一笔（最近 40 笔）", "Every change to the rules is recorded (last 40)")),
       ),
       logs.length === 0
-        ? h("div", { className: "dshCo-empty" }, "还没有记录。")
+        ? h("div", { className: "dshCo-empty" }, t("还没有记录。", "No entries yet."))
         : logs
             .slice()
             .reverse()
@@ -427,22 +483,22 @@ function CopilotPanel(props: { scope: Scope<Value> }): React.ReactElement {
                 h("span", { className: "dshCo-when" }, clock(entry.at)),
                 h("div", { style: { flex: 1 } },
                   h("div", null,
-                    h("span", { className: index === 0 ? "dshCo-now" : undefined }, `${entry.count} 条规则`),
-                    h("span", { className: "dshCo-sub" }, ` · ${entry.bytes} 字节`),
-                    index === 0 ? h("span", { className: "dshCo-now" }, "  ← 当前") : null,
+                    h("span", { className: index === 0 ? "dshCo-now" : undefined }, t(`${entry.count} 条规则`, `${entry.count} rule(s)`)),
+                    h("span", { className: "dshCo-sub" }, t(` · ${entry.bytes} 字节`, ` · ${entry.bytes} bytes`)),
+                    index === 0 ? h("span", { className: "dshCo-now" }, t("  ← 当前", "  ← current")) : null,
                   ),
-                  h("div", { className: "dshCo-sub" }, entry.titles.join("、") || "(无标题)"),
+                  h("div", { className: "dshCo-sub" }, entry.titles.join(t("、", ", ")) || t("(无标题)", "(untitled)")),
                 ),
-                index === 0 ? null : h("button", { className: "dshCo-btn", onClick: () => restore(entry) }, "恢复这版"),
+                index === 0 ? null : h("button", { className: "dshCo-btn", onClick: () => restore(entry) }, t("恢复这版", "Restore this version")),
               ),
             ),
     ),
-    // ── 体检
+    // ── inspection
     h(
       "div",
       { className: "dshCo-card" },
-      h("div", { className: "dshCo-h" }, "体检"),
-      h("div", { className: "dshCo-sub", style: { margin: "4px 0 2px" } }, "只看事实：重复、臃肿、空规则、成本。它不替你改，也不打分。"),
+      h("div", { className: "dshCo-h" }, t("体检", "Inspection")),
+      h("div", { className: "dshCo-sub", style: { margin: "4px 0 2px" } }, t("只看事实：重复、臃肿、空规则、成本。它不替你改，也不打分。", "Facts only: repetition, bloat, empty rules, cost. It does not edit anything for you, and it does not keep score.")),
       hints.map((hint, index) =>
         h("div", { className: "dshCo-hint", key: index },
           h("span", { className: "dshCo-dot", style: { background: hint.color } }),
@@ -450,7 +506,10 @@ function CopilotPanel(props: { scope: Scope<Value> }): React.ReactElement {
         ),
       ),
       prompt ? h("div", { className: "dshCo-sub", style: { marginTop: 6 } },
-        `这份提示词每轮大约 ${prompt.tokens} token——它跟着每一次对话一起付费，所以“加一句”不是免费的。`) : null,
+        t(
+          `这份提示词每轮大约 ${prompt.tokens} token——它跟着每一次对话一起付费，所以“加一句”不是免费的。`,
+          `This prompt costs roughly ${prompt.tokens} tokens per turn — it is paid for with every conversation, so "one more sentence" is never free.`,
+        )) : null,
     ),
   );
 }
@@ -532,7 +591,7 @@ export function apply(ctx: any): void {
   const Section = () => h(CopilotPanel, { scope });
   ctx.slots.inject("settings.section", () =>
     ctx.slots.register(
-      { name: "settings.section", id: "prompt-desk", order: 26, label: () => "提示词工作台", inject: () => ({}) },
+      { name: "settings.section", id: "prompt-desk", order: 26, label: () => t("提示词工作台", "Prompt Desk"), inject: () => ({}) },
       Section,
     ),
   );

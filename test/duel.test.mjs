@@ -17,6 +17,10 @@ let spec = null;
 globalThis.window = { __ModuleLoader__: { load: (s) => { spec = s; } } };
 globalThis.document = { getElementById: () => null, createElement: () => ({}), head: { append() {} } };
 globalThis.fetch = async () => ({ json: async () => ({ ok: false, error: "no host in tests" }) });
+// Pin the UI language so the localized strings are deterministic across machines: the client reads
+// `navigator.language` at load time and picks Chinese for a zh-* locale. Without this the assertions
+// below would depend on the host locale (English on CI), and the localized hints would not match.
+Object.defineProperty(globalThis, "navigator", { value: { language: "zh-CN" }, configurable: true, writable: true });
 
 const React = {
   createElement: (...args) => ({ args }),
