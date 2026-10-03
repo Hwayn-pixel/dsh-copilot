@@ -273,19 +273,29 @@ function CopilotPanel(props: { scope: Scope<Value> }): React.ReactElement {
   const write = (next: Partial<Value>) => {
     for (const [key, val] of Object.entries(next)) void scope.set(key, val);
   };
-  const setRule = (index: number, patch: Partial<Rule>) => write({ rules: rules.map((rule, i) => (i === index ? { ...rule, ...patch } : rule)) });
+
+  // Rules are DRAFTED locally and committed on blur. A controlled input that writes on every
+  // keystroke fights the IME — the RPC round-trip rewrites the field mid-composition and Chinese
+  // comes out garbled. Type locally, save on blur. (2026-10-03: same bug fixed in dsh-touchstone.)
+  const idSig = rules.map((rule) => rule?.id ?? "").join("|");
+  const [draft, setDraft] = React.useState<Rule[]>(rules);
+  React.useEffect(() => { setDraft(rules); }, [idSig]);
+  const commitRules = () => write({ rules: draft });
+  const applyRules = (next: Rule[]) => { setDraft(next); write({ rules: next }); };
+  const setRule = (index: number, patch: Partial<Rule>) =>
+    setDraft((list) => list.map((rule, i) => (i === index ? { ...rule, ...patch } : rule)));
   const addRule = (seed?: { title?: string; text?: string; band?: Band }) =>
-    write({ rules: [...rules, { id: newId(), title: seed?.title ?? "", text: seed?.text ?? "", band: seed?.band ?? "mid", enabled: true }] });
-  const delRule = (index: number) => write({ rules: rules.filter((_, i) => i !== index) });
+    applyRules([...draft, { id: newId(), title: seed?.title ?? "", text: seed?.text ?? "", band: seed?.band ?? "mid", enabled: true }]);
+  const delRule = (index: number) => applyRules(draft.filter((_, i) => i !== index));
   const move = (index: number, delta: number) => {
-    const next = [...rules];
+    const next = [...draft];
     const target = index + delta;
     if (target < 0 || target >= next.length) return;
     [next[index], next[target]] = [next[target], next[index]];
-    write({ rules: next });
+    applyRules(next);
   };
   const restore = (entry: HistoryEntry) => {
-    write({ rules: (entry.rules ?? []).map((rule) => ({ ...rule, id: rule.id || newId() })) });
+    applyRules((entry.rules ?? []).map((rule) => ({ ...rule, id: rule.id || newId() })));
   };
 
   const sections = (prompt?.sections ?? []) as { name: string; bytes: number; text: string }[];
@@ -371,21 +381,21 @@ function CopilotPanel(props: { scope: Scope<Value> }): React.ReactElement {
         h("span", { className: "dshCo-sub" }, "航线："),
         ...ROUTES.map((route, index) => h("button", { className: "dshCo-chip", key: index, onClick: () => addRule(route) }, route.title)),
       ),
-      rules.length === 0 ? h("div", { className: "dshCo-empty", style: { marginTop: 6 } }, "还没有家规。点上面的「航线」，或者自己写一条。") : null,
-      rules.map((rule, index) =>
+      draft.length === 0 ? h("div", { className: "dshCo-empty", style: { marginTop: 6 } }, "还没有家规。点上面的「航线」，或者自己写一条。") : null,
+      draft.map((rule, index) =>
         h(
           "div",
-          { className: "dshCo-rule", key: rule.id || index },
+          { className: "dshCo-rule", key: rule.id || index, onBlur: commitRules },
           h(
             "div",
             { className: "dshCo-row" },
-            h("input", { type: "checkbox", checked: rule.enabled !== false, onChange: (e: any) => setRule(index, { enabled: e.target.checked }) }),
+            h("input", { type: "checkbox", checked: rule.enabled !== false, onChange: (e: any) => applyRules(draft.map((r, i) => (i === index ? { ...r, enabled: e.target.checked } : r))) }),
             h("input", { className: "dshCo-in", value: rule.title ?? "", placeholder: "标题（只给你看）", onChange: (e: any) => setRule(index, { title: e.target.value }) }),
-            h("select", { className: "dshCo-sel", value: rule.band ?? "mid", onChange: (e: any) => setRule(index, { band: e.target.value as Band }) },
+            h("select", { className: "dshCo-sel", value: rule.band ?? "mid", onChange: (e: any) => applyRules(draft.map((r, i) => (i === index ? { ...r, band: e.target.value as Band } : r))) },
               ...BANDS.map((band) => h("option", { key: band.id, value: band.id }, band.label))),
-            h("button", { className: "dshCo-x", title: "上移", onClick: () => move(index, -1) }, "↑"),
-            h("button", { className: "dshCo-x", title: "下移", onClick: () => move(index, 1) }, "↓"),
-            h("button", { className: "dshCo-x", title: "删除", onClick: () => delRule(index) }, "×"),
+            h("button", { className: "dshCo-x", title: "上移", onMouseDown: (e: any) => e.preventDefault(), onClick: () => move(index, -1) }, "↑"),
+            h("button", { className: "dshCo-x", title: "下移", onMouseDown: (e: any) => e.preventDefault(), onClick: () => move(index, 1) }, "↓"),
+            h("button", { className: "dshCo-x", title: "删除", onMouseDown: (e: any) => e.preventDefault(), onClick: () => delRule(index) }, "×"),
           ),
           h("textarea", {
             className: "dshCo-ta",
